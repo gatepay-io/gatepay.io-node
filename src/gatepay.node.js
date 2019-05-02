@@ -268,3 +268,4 @@ gatepay.group = function(sign, callback) {
 gatepay.stable = function(sign, callback) {
 	return gatepay.client("stablepay", "create").stablepay_create(sign, callback)
 };
+module.exports = gatepay;
