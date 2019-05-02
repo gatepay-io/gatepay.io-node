@@ -4,8 +4,9 @@
   通常用来处理自己的网站的业务，用户成功支付后 比如给会员充值，让具体的内容可以看见等等。
 
 */
-var express = require('express')
-var app = express()
+var express = require('express');
+var md5 = require('md5');
+var app = express();
 
 
 app.get('/notify', function (req, res) {
@@ -28,6 +29,7 @@ app.get('/notify', function (req, res) {
   }
   //3. 参数校验
   // 具体的，比如价格，时间 可以自行校验。
+  
   //4.业务处理
   //比如给你的网站充值会员，加钱什么的，写这里。
   //5.状态返回
