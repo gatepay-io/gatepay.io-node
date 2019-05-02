@@ -30,9 +30,15 @@ node.js sdk of gatepay
 ---------------------准备工作结束-------------------------------------
 
 接下来我们讲讲这个sdk怎么耍起来
-先是在你的应用的目录下npm install这个sdk `npm install gatepay.io-node`
+先是在你的应用的目录下npm install这个sdk 
+```
+npm install gatepay.io-node
+```
 
-然后在应用里引入它 `var gatepay = require('gatepay.io-node');`
+然后在应用里引入它 
+```
+var gatepay = require('gatepay.io-node');
+```
 
 现在进入正题，gatepay提供三种接口，分别是anypay，stablepay，grouppay，不论哪种接口，我们都需要使用gatepay后台提供我们的appkey和appsecret。
 
@@ -46,37 +52,26 @@ $appsecret = 'your appsecret from gatepay';
 这个主要的特点是：金额是任意的，无需后台提前上传二维码，填写商品啥的。比如你的应用是不固定价格的服务，比如充值会员的服务，想充多少充多少。那这个比较合适搞。
 
 调用也很简单：
-```php
-$price = 1.00; //要充值的金额，随便填，这里我写的1块钱
-$out_order_id = uniqid(); //你的系统产生的订单号，这里演示 就是搞随机函数生成了一个单号
-$custom = 'terry'; //这个字段是自定义的字段，比如要充值给你的网站哪个用户， 我这里填写的是充值给我的客户名叫terry的那个家伙。
-$type = 'wechat'; //这个很明显了，支付方式，这里填的是微信， 如果是支付宝，填写alipay。
-//组装参数
-$params = [
-  'price'=>$price,
-  'type'=>$type,
-  'out_order_id'=>$out_order_id,
-  'custom'=>$custom,
-];
-//开始支付请求(分别是:授权->签名->组装生成连接->请求)
-$response = $api->auth($appkey,$appsecret)->sign($params)->route('anypay','create')->request();
-//做下判断，看看是否生成成功，
-//print_r($response);
-if($response && $response['code']==100){
-  //生成支付连接成功了，
-    $pay_url = $response['data']['pay_url'];//支付的连接
-    //跳转到gatepay那里去支付
-    header("location:".$pay_url);
-}
-else{
-  //出了问题？
-    if($response){
-      echo $response['msg'];
-    }
-    else{
-      echo '服务器开了点小差~~';
-    }
-}
+
+```Javascript
+//注意，测试时，必须在真实网站环境测试，本地文件浏览模式不可以。
+var params = {};//定义请求参数
+params.price = 0.99;//任意金额都可以，商品价格。
+params.type ='wechat';//支付方式，如果是支付宝则填写alipay
+params.out_order_id = gatepay.uuid();//外部订单号，也就是你的系统产生的订单号，演示这里是用随机函数生成的编号
+params.custom = 'terry';//这个是携带的客户信息， 可以是任何字符串，比如你的网站是充值会员，这个可以是会员用户名，邮箱 或者电话之类的。
+//如果担心appsecret泄露，可以在服务端生成。这里直接用js的sdk执行了签名
+var sign = gatepay.sign(appkey,params,appsecret);//执行签名，获取携带签名的参数信息，
+//发起rpc请求
+gatepay.any(sign,function(response){
+	if(response.code == 100){
+		//代表请求成功
+    		gatepay.go(response.data.pay_url); //这个GO方法将会执行页面跳转，直接跳转到支付页面
+    	}
+    	else{
+    		alert(response.msg);//输出错误信息，自己处理咯。
+    	}
+});
 ```
 
 2.固定商品支付 stablepay,
@@ -89,73 +84,48 @@ else{
 
 直接上代码：
 
-```php
-$product_id = 8; //产品的编号(ID)， 这个在管理后台->产品卡密->产品管理里可以看到。
-$out_order_id = uniqid(); //你的系统产生的订单号，这里演示 就是搞随机函数生成了一个单号
-$custom = 'terry'; //这个字段是自定义的字段，比如要充值给你的网站哪个用户， 我这里填写的是充值给我的客户名叫terry的那个家伙。
-$type = 'wechat'; //这个很明显了，支付方式，这里填的是微信， 如果是支付宝，填写alipay。
-//组装参数
-$params = [
-  'product_id'=>$product_id,
-  'type'=>$type,
-  'out_order_id'=>$out_order_id,
-  'custom'=>$custom,
-];
-//开始支付请求(分别是:授权->签名->组装生成连接->请求)
-$response = $api->auth($appkey,$appsecret)->sign($params)->route('stablepay','create')->request();
-//做下判断，看看是否生成成功，
-//print_r($response);
-if($response && $response['code']==100){
-  //生成支付连接成功了，
-    $pay_url = $response['data']['pay_url'];//支付的连接
-    //跳转到gatepay那里去支付
-    header("location:".$pay_url);
-}
-else{
-  //出了问题？
-    if($response){
-      echo $response['msg'];
-    }
-    else{
-      echo '服务器开了点小差~~';
-    }
-}
+```Javascript
+//注意，测试时，必须在真实网站环境测试，本地文件浏览模式不可以。
+var params = {};//定义请求参数
+params.product_id = '8';//产品ID为8,
+params.type ='wechat';//支付方式，如果是支付宝则填写alipay
+params.out_order_id = gatepay.uuid();//外部订单号，也就是你的系统产生的订单号，演示这里是用随机函数生成的编号
+params.custom = 'terry';//这个是携带的客户信息， 可以是任何字符串，比如你的网站是充值会员，这个可以是会员用户名，邮箱 或者电话之类的。
+//如果担心appsecret泄露，可以在服务端生成。这里直接用js的sdk执行了签名
+var sign = gatepay.sign(appkey,params,appsecret);//执行签名，获取携带签名的参数信息，
+//发起rpc请求
+gatepay.stable(sign,function(response){
+	if(response.code == 100){
+		//代表请求成功
+    		gatepay.go(response.data.pay_url); //这个GO方法将会执行页面跳转，直接跳转到支付页面
+    	}
+    	else{
+    		alert(response.msg);//输出错误信息，自己处理咯。
+    	}
+});
 ```
 3. 组合商品支付  grouppay,
 
 可以实现对多个固定商品 组合后进行支付， 如果你想实现 一些组合出售的需求，可以使用这个接口。
 
 直接上代码
-
-```php
-$fields = '8:1,7:2';//代表产品ID为8的购买1件，产品ID为7的购买2件 
-$out_order_id = uniqid(); //你的系统产生的订单号，这里演示 就是搞随机函数生成了一个单号
-$custom = 'terry'; //这个字段是自定义的字段，比如要充值给你的网站哪个用户， 我这里填写的是充值给我的客户名叫terry的那个家伙。
-$type = 'wechat'; //这个很明显了，支付方式，这里填的是微信， 如果是支付宝，填写alipay。
-//组装参数
-$params = [
-  'fields'=>$fields,
-  'type'=>$type,
-  'out_order_id'=>$out_order_id,
-  'custom'=>$custom,
-];
-//开始支付请求(分别是:授权->签名->组装生成连接->请求)
-$response = $api->auth($appkey,$appsecret)->sign($params)->route('grouppay','create')->request();
-//做下判断，看看是否生成成功，
-//print_r($response);
-if($response && $response['code']==100){
-  //生成支付连接成功了，
-    $pay_url = $response['data']['pay_url'];//支付的连接
-    //跳转到gatepay那里去支付
-    header("location:".$pay_url);
-}
-else{
-  //出了问题？
-    if($response){
-      echo $response['msg'];
-    }
-    else{
-      echo '服务器开了点小差~~';
-    }
-}
+```Javascript
+//注意，测试时，必须在真实网站环境测试，本地文件浏览模式不可以。
+var params = {};//定义请求参数
+params.fields = '8:2,7:3,10:1';//产品ID为8的购买2件，产品ID为7的购买3件，产品ID为10的购买1件。
+params.type ='wechat';//支付方式，如果是支付宝则填写alipay
+params.out_order_id = gatepay.uuid();//外部订单号，也就是你的系统产生的订单号，演示这里是用随机函数生成的编号
+params.custom = 'terry';//这个是携带的客户信息， 可以是任何字符串，比如你的网站是充值会员，这个可以是会员用户名，邮箱 或者电话之类的。
+//如果担心appsecret泄露，可以在服务端生成。这里直接用js的sdk执行了签名
+var sign = gatepay.sign(appkey,params,appsecret);//执行签名，获取携带签名的参数信息，
+//发起rpc请求
+gatepay.group(sign,function(response){
+	if(response.code == 100){
+		//代表请求成功
+    		gatepay.go(response.data.pay_url); //这个GO方法将会执行页面跳转，直接跳转到支付页面
+    	}
+    	else{
+    		alert(response.msg);//输出错误信息，自己处理咯。
+    	}
+});
 ```
