@@ -28,3 +28,134 @@ node.js sdk of gatepay
 ![help_02](https://gatepay.gatecdn.com/assets/img/help/help_02.png)
 
 ---------------------准备工作结束-------------------------------------
+
+接下来我们讲讲这个sdk怎么耍起来
+先是在你的应用的目录下npm install这个sdk `npm install gatepay.io-node`
+
+然后在应用里引入它 `var gatepay = require('gatepay.io-node');`
+
+现在进入正题，gatepay提供三种接口，分别是anypay，stablepay，grouppay，不论哪种接口，我们都需要使用gatepay后台提供我们的appkey和appsecret。
+
+```php
+$appkey = 'your appkey from gatepay';
+$appsecret = 'your appsecret from gatepay';
+```
+
+1. 任意金额支付 anypay,
+
+这个主要的特点是：金额是任意的，无需后台提前上传二维码，填写商品啥的。比如你的应用是不固定价格的服务，比如充值会员的服务，想充多少充多少。那这个比较合适搞。
+
+调用也很简单：
+```php
+$price = 1.00; //要充值的金额，随便填，这里我写的1块钱
+$out_order_id = uniqid(); //你的系统产生的订单号，这里演示 就是搞随机函数生成了一个单号
+$custom = 'terry'; //这个字段是自定义的字段，比如要充值给你的网站哪个用户， 我这里填写的是充值给我的客户名叫terry的那个家伙。
+$type = 'wechat'; //这个很明显了，支付方式，这里填的是微信， 如果是支付宝，填写alipay。
+//组装参数
+$params = [
+  'price'=>$price,
+  'type'=>$type,
+  'out_order_id'=>$out_order_id,
+  'custom'=>$custom,
+];
+//开始支付请求(分别是:授权->签名->组装生成连接->请求)
+$response = $api->auth($appkey,$appsecret)->sign($params)->route('anypay','create')->request();
+//做下判断，看看是否生成成功，
+//print_r($response);
+if($response && $response['code']==100){
+  //生成支付连接成功了，
+    $pay_url = $response['data']['pay_url'];//支付的连接
+    //跳转到gatepay那里去支付
+    header("location:".$pay_url);
+}
+else{
+  //出了问题？
+    if($response){
+      echo $response['msg'];
+    }
+    else{
+      echo '服务器开了点小差~~';
+    }
+}
+```
+
+2.固定商品支付 stablepay,
+
+这个主要的特点是，先要去管理后台->产品卡密->产品管理里创建一个产品，然后上传支付宝微信二维码。
+
+然后在管理后台->产品卡密->卡密管理 里导入这个产品的卡密。
+
+感觉是很麻烦，但是这个stablepay 可以帮我们做到销售卡密的过程，比如你要卖什么xxx影视会员点卡之类，对接这个api就可以。
+
+直接上代码：
+
+```php
+$product_id = 8; //产品的编号(ID)， 这个在管理后台->产品卡密->产品管理里可以看到。
+$out_order_id = uniqid(); //你的系统产生的订单号，这里演示 就是搞随机函数生成了一个单号
+$custom = 'terry'; //这个字段是自定义的字段，比如要充值给你的网站哪个用户， 我这里填写的是充值给我的客户名叫terry的那个家伙。
+$type = 'wechat'; //这个很明显了，支付方式，这里填的是微信， 如果是支付宝，填写alipay。
+//组装参数
+$params = [
+  'product_id'=>$product_id,
+  'type'=>$type,
+  'out_order_id'=>$out_order_id,
+  'custom'=>$custom,
+];
+//开始支付请求(分别是:授权->签名->组装生成连接->请求)
+$response = $api->auth($appkey,$appsecret)->sign($params)->route('stablepay','create')->request();
+//做下判断，看看是否生成成功，
+//print_r($response);
+if($response && $response['code']==100){
+  //生成支付连接成功了，
+    $pay_url = $response['data']['pay_url'];//支付的连接
+    //跳转到gatepay那里去支付
+    header("location:".$pay_url);
+}
+else{
+  //出了问题？
+    if($response){
+      echo $response['msg'];
+    }
+    else{
+      echo '服务器开了点小差~~';
+    }
+}
+```
+3. 组合商品支付  grouppay,
+
+可以实现对多个固定商品 组合后进行支付， 如果你想实现 一些组合出售的需求，可以使用这个接口。
+
+直接上代码
+
+```php
+$fields = '8:1,7:2';//代表产品ID为8的购买1件，产品ID为7的购买2件 
+$out_order_id = uniqid(); //你的系统产生的订单号，这里演示 就是搞随机函数生成了一个单号
+$custom = 'terry'; //这个字段是自定义的字段，比如要充值给你的网站哪个用户， 我这里填写的是充值给我的客户名叫terry的那个家伙。
+$type = 'wechat'; //这个很明显了，支付方式，这里填的是微信， 如果是支付宝，填写alipay。
+//组装参数
+$params = [
+  'fields'=>$fields,
+  'type'=>$type,
+  'out_order_id'=>$out_order_id,
+  'custom'=>$custom,
+];
+//开始支付请求(分别是:授权->签名->组装生成连接->请求)
+$response = $api->auth($appkey,$appsecret)->sign($params)->route('grouppay','create')->request();
+//做下判断，看看是否生成成功，
+//print_r($response);
+if($response && $response['code']==100){
+  //生成支付连接成功了，
+    $pay_url = $response['data']['pay_url'];//支付的连接
+    //跳转到gatepay那里去支付
+    header("location:".$pay_url);
+}
+else{
+  //出了问题？
+    if($response){
+      echo $response['msg'];
+    }
+    else{
+      echo '服务器开了点小差~~';
+    }
+}
+```
