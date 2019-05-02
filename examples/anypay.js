@@ -1,5 +1,4 @@
-var hprose = require("hprose");
-var gatepay = require('../src/gatepay');
+var gatepay = require('../src/gatepay.node');
 
 var appkey = 'your appkey ';//在gatepay管理后台的账户设置里有
 var appsecret = 'your appscret';//在gatepay管理后台的账户设置里有
