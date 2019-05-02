@@ -1,3 +1,14 @@
+/**********************************************************\
+|                                                          |
+|                 gatepay.io-node                          |
+|                                                          |
+| 	 Official WebSite: https://gatepay.io/             |
+|                                                          |
+\**********************************************************/
+
+'use strict';
+require('hprose');
+global.gatepay = global.gatepay || Object.create(null);
 String.prototype.gatepaysign = function(bit) {
 	var sMessage = this;
 
@@ -233,12 +244,11 @@ function urlencode(clearString) {
 	}
 	return output
 }
-gatepay = {};
-gatepay.baseurl = "https://gatepay.io/api";
-gatepay.client = function(controller, action) {
-  	return hprose.Client.create(gatepay.baseurl + "/" + controller, [controller + "_" + action]);
+global.gatepay.baseurl = "https://gatepay.io/api";
+global.gatepay.client = function(controller, action) {
+  	return global.hprose.Client.create(global.gatepay.baseurl + "/" + controller, [controller + "_" + action]);
 };
-gatepay.sign = function(appkey, params, appsecret) {
+global.gatepay.sign = function(appkey, params, appsecret) {
 	var sign = appkey;
 	for (var key in params) {
 		sign = sign + params[key]
@@ -250,7 +260,7 @@ gatepay.sign = function(appkey, params, appsecret) {
 	params.appkey = appkey;
 	return params
 };
-gatepay.uuid = function() {
+global.gatepay.uuid = function() {
 	var d = new Date().getTime();
 	var uuid = "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, function(c) {
 		var r = (d + Math.random() * 16) % 16 | 0;
@@ -259,13 +269,13 @@ gatepay.uuid = function() {
 	});
 	return uuid
 };
-gatepay.any = function(sign, callback) {
-	return gatepay.client("anypay", "create").anypay_create(sign, callback)
+global.gatepay.any = function(sign, callback) {
+	return global.gatepay.client("anypay", "create").anypay_create(sign, callback)
 };
-gatepay.group = function(sign, callback) {
-	return gatepay.client("grouppay", "create").grouppay_create(sign, callback)
+global.gatepay.group = function(sign, callback) {
+	return global.gatepay.client("grouppay", "create").grouppay_create(sign, callback)
 };
-gatepay.stable = function(sign, callback) {
-	return gatepay.client("stablepay", "create").stablepay_create(sign, callback)
+global.gatepay.stable = function(sign, callback) {
+	return global.gatepay.client("stablepay", "create").stablepay_create(sign, callback)
 };
-module.exports = gatepay;
+module.exports = global.gatepay;
